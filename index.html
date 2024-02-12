@@ -71,6 +71,10 @@
     }
 
     function onCellClick(event) {
+      if (selected === event.target) {
+        selected = null
+        return
+      }
       if (selected === null) {
         selected = event.target;
         selected.classList.add("selected");
