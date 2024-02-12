@@ -54,6 +54,7 @@
     var rows = 6;
     var columns = 6;
     var selected = null;
+    var lastTarget = null;
     setup();
 
     function setup() {
@@ -71,7 +72,7 @@
     }
 
     function onCellClick(event) {
-      if (selected === event.target) {
+      if (lastTarget === event.target) {
         selected = null
         return
       }
@@ -82,6 +83,7 @@
         // swap
         swap(selected, event.target);
         selected.classList.remove("selected");
+        lastTarget === event.target
         if (isComplete()) {
           selected.classList.add("complete");
           console.log("complete");
