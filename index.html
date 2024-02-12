@@ -1,0 +1,173 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #app {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+    }
+
+    .cell {
+      flex-grow: 1;
+      aspect-ratio: 1;
+      font-size: 0;
+    }
+
+    .cell:hover {
+      transform: scale(1.2);
+    }
+
+    .selected {
+      transform: scale(1.2);
+      z-index: 1;
+    }
+
+    .complete {
+      animation: 4s linear 0s 1 spin;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0turn);
+      }
+      to {
+        transform: rotate(1turn);
+      }
+    }
+  </style>
+  <script>
+    var rows = 6;
+    var columns = 6;
+    var selected = null;
+    setup();
+
+    function setup() {
+      const urlParams = new URLSearchParams(window.location.search);
+      rows = urlParams.get("rows") || rows;
+      columns = urlParams.get("cols") || columns;
+
+      const app = document.getElementById("app");
+      for (var i = 0; i < rows; i++) {
+        var row = createRow(i);
+        app.appendChild(row);
+      }
+
+      shuffleCols();
+    }
+
+    function onCellClick(event) {
+      if (selected === null) {
+        selected = event.target;
+        selected.classList.add("selected");
+      } else {
+        // swap
+        swap(selected, event.target);
+        selected.classList.remove("selected");
+        if (isComplete()) {
+          selected.classList.add("complete");
+          console.log("complete");
+          const cells = document.getElementsByClassName("cell");
+          for (cell of cells) {
+            cell.classList.add("complete");
+          }
+        }
+        selected = null;
+      }
+    }
+
+    function createRow(rowId) {
+      const row = document.createElement("div");
+      row.id = `row${rowId}`;
+      row.className = "row";
+
+      for (var i = 0; i < columns; i++) {
+        const col = document.createElement("div");
+        col.id = `${rowId}x${i}`;
+        col.className = "cell";
+        col.innerHTML = `${rowId}x${i}`;
+        col.style = `background-color: hsl(${(i / columns) * 60 + 180} ,${
+          (rowId / rows) * 100 + 20
+        }%, 50%);`;
+        col.onclick = onCellClick;
+        row.appendChild(col);
+      }
+      return row;
+    }
+
+    function shuffleCols() {
+      // Don't shuffle the border cells
+      let cells = [...document.querySelectorAll(".cell")];
+      console.log(cells);
+      const pattern = new RegExp(
+        `^(0x.+|.+x0|${rows - 1}x.+|.+x${columns - 1})$`
+      );
+      cells = cells.filter((item) => !pattern.test(item.id));
+      console.log(cells);
+
+      shuffle(cells);
+    }
+
+    function shuffle(array) {
+      // Using Fisher-Yates Shuffle.
+      let currentIndex = array.length,
+        randomIndex,
+        tempId,
+        tempStyle;
+
+      // While there remain elements to shuffle.
+      while (currentIndex > 0) {
+        // Pick a remaining element.
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+
+        // And swap it with the current element.
+        swap(array[currentIndex], array[randomIndex]);
+      }
+
+      return array;
+    }
+
+    function swap(x, y) {
+      tempId = x.getAttribute("id");
+      tempStyle = x.getAttribute("style");
+      tempInnerHTML = x.innerHTML;
+      x.setAttribute("id", y.getAttribute("id"));
+      x.setAttribute("style", y.getAttribute("style"));
+      x.innerHTML = y.innerHTML;
+      y.setAttribute("id", tempId);
+      y.setAttribute("style", tempStyle);
+      y.innerHTML = tempInnerHTML;
+    }
+
+    function isComplete() {
+      const cells = document.getElementsByClassName("cell");
+      const indices = [];
+
+      for (cell of cells) {
+        indices.push(cell.id);
+      }
+
+      for (let i = 0; i < indices.length - 1; i++) {
+        if (indices[i] > indices[i + 1]) {
+          return false;
+        }
+      }
+      return true;
+    }
+  </script>
+</html>
