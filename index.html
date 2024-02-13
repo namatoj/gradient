@@ -57,12 +57,14 @@
     var columns = 6;
     var selected = null;
     var lastTarget = null;
+    var noShuffle = false;
     setup();
 
     function setup() {
       const urlParams = new URLSearchParams(window.location.search);
       rows = urlParams.get("rows") || rows;
       columns = urlParams.get("cols") || columns;
+      noShuffle = urlParams.get("noShuffle") === "true" || noShuffle;
 
       const app = document.getElementById("app");
       for (var i = 0; i < rows; i++) {
@@ -70,13 +72,16 @@
         app.appendChild(row);
       }
 
+      if (noShuffle) {
+        return;
+      }
       shuffleCols();
     }
 
     function onCellClick(event) {
       if (lastTarget === event.target) {
-        selected = null
-        return
+        selected = null;
+        return;
       }
       if (selected === null) {
         selected = event.target;
@@ -85,7 +90,7 @@
         // swap
         swap(selected, event.target);
         selected.classList.remove("selected");
-        lastTarget === event.target
+        lastTarget === event.target;
         if (isComplete()) {
           selected.classList.add("complete");
           console.log("complete");
@@ -108,10 +113,21 @@
         col.id = `${rowId}x${i}`;
         col.className = "cell";
         col.innerHTML = `${rowId}x${i}`;
-        col.style = `background-color: hsl(${(i / columns) * 60 + 180} ,${
-          (rowId / rows) * 100 + 20
-        }%, 50%);`;
+
         col.onclick = onCellClick;
+        const y = rowId / (rows - 1);
+        const x = i / (columns - 1);
+
+        c1 = [60, -16, -5];
+        c2 = [47, 8, -24];
+        c3 = [91, -48, -14];
+        c4 = [36, 68, -102];
+        const L = bilinearInterpolation(x, y, [c1[0], c2[0], c3[0], c4[0]]);
+        const a = bilinearInterpolation(x, y, [c1[1], c2[1], c3[1], c4[1]]);
+        const b = bilinearInterpolation(x, y, [c1[2], c2[2], c3[2], c4[2]]);
+
+        const style = `background-color: lab(${L} ${a} ${b});`;
+        col.style = style;
         row.appendChild(col);
       }
       return row;
@@ -120,12 +136,10 @@
     function shuffleCols() {
       // Don't shuffle the border cells
       let cells = [...document.querySelectorAll(".cell")];
-      console.log(cells);
       const pattern = new RegExp(
         `^(0x.+|.+x0|${rows - 1}x.+|.+x${columns - 1})$`
       );
       cells = cells.filter((item) => !pattern.test(item.id));
-      console.log(cells);
 
       shuffle(cells);
     }
@@ -176,6 +190,19 @@
         }
       }
       return true;
+    }
+
+    function bilinearInterpolation(x, y, vals) {
+      const [topLeft, topRight, bottomLeft, bottomRight] = vals;
+      const alpha = 1 - x;
+      const beta = 1 - y;
+
+      return (
+        alpha * beta * topLeft +
+        x * beta * topRight +
+        alpha * y * bottomLeft +
+        x * y * bottomRight
+      );
     }
   </script>
 </html>
