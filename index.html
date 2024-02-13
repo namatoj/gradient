@@ -57,10 +57,10 @@
     var columns = 6;
     var selected = null;
     var noShuffle = false;
-    var topLeft = [102, 153, 153];
-    var topRight = [102, 110, 153];
-    var bottomLeft = [0, 255, 255];
-    var bottomRight = [0, 43, 255];
+    var topLeft = "#669999";
+    var topRight = "#666E99";
+    var bottomLeft = "#00FFFF";
+    var bottomRight = "#002BFF";
 
     setup();
 
@@ -69,10 +69,12 @@
       rows = urlParams.get("rows") || rows;
       columns = urlParams.get("cols") || columns;
       noShuffle = urlParams.get("noShuffle") === "true" || noShuffle;
-      topLeft = JSON.parse(urlParams.get("topLeft")) || topLeft;
-      topRight = JSON.parse(urlParams.get("topRight")) || topRight;
-      bottomLeft = JSON.parse(urlParams.get("bottomLeft")) || bottomLeft;
-      bottomRight = JSON.parse(urlParams.get("bottomRight")) || bottomRight;
+      topLeft = "#" + urlParams.get("topLeft") || topLeft;
+      topRight = "#" + urlParams.get("topRight") || topRight;
+      bottomLeft = "#" + urlParams.get("bottomLeft") || bottomLeft;
+      bottomRight = "#" + urlParams.get("bottomRight") || bottomRight;
+
+      console.log(topLeft, topRight, bottomLeft, bottomRight);
 
       const app = document.getElementById("app");
       for (var i = 0; i < rows; i++) {
@@ -121,10 +123,12 @@
         const y = rowId / (rows - 1);
         const x = i / (columns - 1);
 
-        c1 = rgbToLab(topLeft);
-        c2 = rgbToLab(topRight);
-        c3 = rgbToLab(bottomLeft);
-        c4 = rgbToLab(bottomRight);
+        console.log(topLeft, hexToRgb(topLeft));
+        c1 = rgbToLab(hexToRgb(topLeft));
+        c2 = rgbToLab(hexToRgb(topRight));
+        c3 = rgbToLab(hexToRgb(bottomLeft));
+        c4 = rgbToLab(hexToRgb(bottomRight));
+        console.log(c1, c2, c3, c4);
         const L = bilinearInterpolation(x, y, [c1[0], c2[0], c3[0], c4[0]]);
         const a = bilinearInterpolation(x, y, [c1[1], c2[1], c3[1], c4[1]]);
         const b = bilinearInterpolation(x, y, [c1[2], c2[2], c3[2], c4[2]]);
@@ -264,6 +268,17 @@
       let b = (y - z) * 200.0;
 
       return [L, a, b];
+    }
+
+    function hexToRgb(hex) {
+      return hex
+        .replace(
+          /^#?([a-f\d])([a-f\d])([a-f\d])$/i,
+          (m, r, g, b) => "#" + r + r + g + g + b + b
+        )
+        .substring(1)
+        .match(/.{2}/g)
+        .map((x) => parseInt(x, 16));
     }
   </script>
 </html>
