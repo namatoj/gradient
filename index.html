@@ -57,6 +57,11 @@
     var columns = 6;
     var selected = null;
     var noShuffle = false;
+    var topLeft = [102, 153, 153];
+    var topRight = [102, 110, 153];
+    var bottomLeft = [0, 255, 255];
+    var bottomRight = [0, 43, 255];
+
     setup();
 
     function setup() {
@@ -64,6 +69,10 @@
       rows = urlParams.get("rows") || rows;
       columns = urlParams.get("cols") || columns;
       noShuffle = urlParams.get("noShuffle") === "true" || noShuffle;
+      topLeft = JSON.parse(urlParams.get("topLeft")) || topLeft;
+      topRight = JSON.parse(urlParams.get("topRight")) || topRight;
+      bottomLeft = JSON.parse(urlParams.get("bottomLeft")) || bottomLeft;
+      bottomRight = JSON.parse(urlParams.get("bottomRight")) || bottomRight;
 
       const app = document.getElementById("app");
       for (var i = 0; i < rows; i++) {
@@ -112,10 +121,10 @@
         const y = rowId / (rows - 1);
         const x = i / (columns - 1);
 
-        c1 = [60, -16, -5];
-        c2 = [47, 8, -24];
-        c3 = [91, -48, -14];
-        c4 = [36, 68, -102];
+        c1 = rgbToLab(topLeft);
+        c2 = rgbToLab(topRight);
+        c3 = rgbToLab(bottomLeft);
+        c4 = rgbToLab(bottomRight);
         const L = bilinearInterpolation(x, y, [c1[0], c2[0], c3[0], c4[0]]);
         const a = bilinearInterpolation(x, y, [c1[1], c2[1], c3[1], c4[1]]);
         const b = bilinearInterpolation(x, y, [c1[2], c2[2], c3[2], c4[2]]);
@@ -197,6 +206,64 @@
         alpha * y * bottomLeft +
         x * y * bottomRight
       );
+    }
+
+    function rgbToLab(rgb) {
+      // Convert RGB to XYZ
+      let xyz = rgbToXyz(rgb);
+
+      // Convert XYZ to Lab
+      return xyzToLab(xyz);
+    }
+
+    // Convert RGB to XYZ
+    function rgbToXyz(rgb) {
+      let r = rgb[0] / 255;
+      let g = rgb[1] / 255;
+      let b = rgb[2] / 255;
+
+      // Apply gamma correction
+      r = r > 0.04045 ? Math.pow((r + 0.055) / 1.055, 2.4) : r / 12.92;
+      g = g > 0.04045 ? Math.pow((g + 0.055) / 1.055, 2.4) : g / 12.92;
+      b = b > 0.04045 ? Math.pow((b + 0.055) / 1.055, 2.4) : b / 12.92;
+
+      // Convert to XYZ
+      r *= 100.0;
+      g *= 100.0;
+      b *= 100.0;
+
+      let x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
+      let y = r * 0.2126729 + g * 0.7151522 + b * 0.072175;
+      let z = r * 0.0193339 + g * 0.119192 + b * 0.9503041;
+
+      return [x, y, z];
+    }
+
+    // Convert XYZ to Lab
+    function xyzToLab(xyz) {
+      let x = xyz[0] / 95.047;
+      let y = xyz[1] / 100.0;
+      let z = xyz[2] / 108.883;
+
+      // Apply Lab conversion
+      x =
+        x > 0.008856
+          ? Math.pow(x, 1.0 / 3.0)
+          : ((903.3 * x) / 108.883 + 16.0) / 116.0;
+      y =
+        y > 0.008856
+          ? Math.pow(y, 1.0 / 3.0)
+          : ((903.3 * y) / 108.883 + 16.0) / 116.0;
+      z =
+        z > 0.008856
+          ? Math.pow(z, 1.0 / 3.0)
+          : ((903.3 * z) / 108.883 + 16.0) / 116.0;
+
+      let L = Math.max(0, 116.0 * y - 16.0);
+      let a = (x - y) * 500.0;
+      let b = (y - z) * 200.0;
+
+      return [L, a, b];
     }
   </script>
 </html>
