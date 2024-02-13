@@ -74,7 +74,7 @@
       if (noShuffle) {
         return;
       }
-      shuffleCols();
+      shuffleCells();
     }
 
     function onCellClick(event) {
@@ -127,7 +127,7 @@
       return row;
     }
 
-    function shuffleCols() {
+    function shuffleCells() {
       // Don't shuffle the border cells
       let cells = [...document.querySelectorAll(".cell")];
       const pattern = new RegExp(
