@@ -69,10 +69,14 @@
       rows = urlParams.get("rows") || rows;
       columns = urlParams.get("cols") || columns;
       noShuffle = urlParams.get("noShuffle") === "true" || noShuffle;
-      topLeft = "#" + urlParams.get("topLeft") || topLeft;
-      topRight = "#" + urlParams.get("topRight") || topRight;
-      bottomLeft = "#" + urlParams.get("bottomLeft") || bottomLeft;
-      bottomRight = "#" + urlParams.get("bottomRight") || bottomRight;
+      topLeft = urlParams.get("topLeft") || topLeft;
+      topRight = urlParams.get("topRight") || topRight;
+      bottomLeft = urlParams.get("bottomLeft") || bottomLeft;
+      bottomRight = urlParams.get("bottomRight") || bottomRight;
+      topLeft = addHashIfMissing(topLeft);
+      topRight = addHashIfMissing(topRight);
+      bottomLeft = addHashIfMissing(bottomLeft);
+      bottomRight = addHashIfMissing(bottomRight);
 
       console.log(topLeft, topRight, bottomLeft, bottomRight);
 
@@ -279,6 +283,13 @@
         .substring(1)
         .match(/.{2}/g)
         .map((x) => parseInt(x, 16));
+    }
+
+    function addHashIfMissing(x) {
+      if (!x.startsWith("#")) {
+        return "#" + x;
+      }
+      return x;
     }
   </script>
 </html>
